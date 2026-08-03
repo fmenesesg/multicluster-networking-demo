@@ -279,8 +279,38 @@ assert_file_contains \
   "ui-common verifies port free before claiming cleared" \
   "listener still present" \
   "${UI_COMMON}"
+# Live offline: demo_ui_record_pf writes pid+port and disowns the job
 # shellcheck disable=SC1091
 source "${UI_COMMON}"
+record_name="ui-test-record-pf"
+record_port=59999
+sleep 120 &
+record_pid=$!
+if ! demo_ui_record_pf "${record_name}" "${record_pid}" "${record_port}"; then
+  printf 'FAIL: demo_ui_record_pf returned non-zero\n'
+  fail=$((fail + 1))
+  kill "${record_pid}" 2>/dev/null || true
+else
+  got_pid="$(tr -d '[:space:]' <"$(demo_ui_pidfile "${record_name}")" || true)"
+  got_port="$(tr -d '[:space:]' <"$(demo_ui_portfile "${record_name}")" || true)"
+  if [[ "${got_pid}" != "${record_pid}" || "${got_port}" != "${record_port}" ]]; then
+    printf 'FAIL: demo_ui_record_pf wrote pid=%q port=%q (want %s/%s)\n' \
+      "${got_pid}" "${got_port}" "${record_pid}" "${record_port}"
+    fail=$((fail + 1))
+  elif ! kill -0 "${record_pid}" 2>/dev/null; then
+    printf 'FAIL: demo_ui_record_pf left process dead\n'
+    fail=$((fail + 1))
+  elif jobs -p 2>/dev/null | grep -qx "${record_pid}"; then
+    printf 'FAIL: demo_ui_record_pf did not disown pid %s\n' "${record_pid}"
+    fail=$((fail + 1))
+  else
+    printf 'PASS: demo_ui_record_pf persists pid+port and disowns job\n'
+    pass=$((pass + 1))
+  fi
+  kill "${record_pid}" 2>/dev/null || true
+  wait "${record_pid}" 2>/dev/null || true
+  rm -f "$(demo_ui_pidfile "${record_name}")" "$(demo_ui_portfile "${record_name}")"
+fi
 run_dir="$(demo_ui_ensure_run_dir)"
 fake_pidfile="$(demo_ui_pidfile ui-skupper-observer)"
 fake_portfile="$(demo_ui_portfile ui-skupper-observer)"

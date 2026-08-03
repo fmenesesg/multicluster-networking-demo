@@ -11,17 +11,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/../ui-common.sh"
 
-OBSERVER_CHART="${UI_SKUPPER_CHART:-oci://quay.io/skupper/helm/network-observer}"
-OBSERVER_VERSION="${UI_SKUPPER_VERSION:-2.2.1}"
-RELEASE_NAME="${UI_SKUPPER_RELEASE:-skupper-network-observer}"
-PREFERRED_PORT="${UI_SKUPPER_PORT:-8443}"
-NAMESPACE="${UI_SKUPPER_NAMESPACE:-skupper}"
+OBSERVER_CHART="${UI_C_CHART:-oci://quay.io/skupper/helm/network-observer}"
+OBSERVER_VERSION="${UI_C_VERSION:-2.2.1}"
+RELEASE_NAME="${UI_C_RELEASE:-skupper-network-observer}"
+PREFERRED_PORT="${UI_C_PORT:-8443}"
+NAMESPACE="${UI_C_NAMESPACE:-skupper}"
 VALUES_FILE="$(demo_repo_root)/demo/skupper/network-observer/values.yaml"
 PID_NAME="ui-skupper-observer"
 URL_FILE_NAME="ui-skupper-access-url"
 AUTH_FILE_NAME="ui-skupper-basic-auth"
 SITE_FILE_NAME="ui-skupper-site"
-WAIT_TIMEOUT="${UI_SKUPPER_WAIT:-5m}"
+WAIT_TIMEOUT="${UI_C_WAIT:-5m}"
 
 demo_ui_access_url_file() {
   printf '%s/%s\n' "$(demo_ui_run_dir)" "${URL_FILE_NAME}"
@@ -41,7 +41,7 @@ stop_existing_pf() {
 
 # Prefer podman-edge when explicitly forced or as first choice; Helm needs Kind.
 resolve_install_site() {
-  local preferred="${UI_SKUPPER_SITE:-podman-edge}"
+  local preferred="${UI_C_SITE:-podman-edge}"
   if [[ -n "${CLUSTER:-}" ]]; then
     demo_require_allowlisted "${CLUSTER}" "target" || return 1
     if [[ "${CLUSTER}" == "podman-edge" ]]; then
@@ -64,7 +64,7 @@ resolve_install_site() {
       printf 'kind-west\n'
       ;;
     *)
-      printf 'error: unsupported UI_SKUPPER_SITE=%q (use podman-edge or kind-west)\n' "${preferred}" >&2
+      printf 'error: unsupported UI_C_SITE=%q (use podman-edge or kind-west)\n' "${preferred}" >&2
       return 1
       ;;
   esac

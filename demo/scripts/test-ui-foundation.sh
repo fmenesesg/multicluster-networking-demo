@@ -9,7 +9,10 @@ README="${ROOT}/README.md"
 KUADRANT_README="${ROOT}/demo/kuadrant/README.md"
 UI_COMMON="${SCRIPT_DIR}/ui-common.sh"
 UI_SH="${SCRIPT_DIR}/ui.sh"
+UI_DOWN="${SCRIPT_DIR}/ui-down.sh"
 PHASE_A="${SCRIPT_DIR}/ui/_phase_a.sh"
+PHASE_B="${SCRIPT_DIR}/ui/_phase_b.sh"
+PHASE_C="${SCRIPT_DIR}/ui/_phase_c.sh"
 LIB_COMMON="${SCRIPT_DIR}/lib/common.sh"
 
 pass=0
@@ -274,6 +277,10 @@ assert_file_contains \
   "ui.sh uses set -e fail-fast" \
   "set -euo pipefail" \
   "${UI_SH}"
+assert_file_contains \
+  "ui.sh allows UI_DIR override for harnesses" \
+  'UI_DIR="${UI_DIR:-' \
+  "${UI_SH}"
 if grep -q 'run_phase a' "${UI_SH}" && grep -q 'run_phase b' "${UI_SH}" && grep -q 'run_phase c' "${UI_SH}"; then
   printf 'PASS: ui.sh runs A then B then C\n'
   pass=$((pass + 1))
@@ -281,7 +288,7 @@ else
   printf 'FAIL: ui.sh missing sequential A/B/C\n'
   fail=$((fail + 1))
 fi
-# Simulate mid-B fail ⇒ C not started (stub PATH)
+# Drive real ui.sh with stub phases via UI_DIR (mid-B fail ⇒ C not started)
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "${tmpdir}"' EXIT
 cat >"${tmpdir}/_phase_a.sh" <<'EOF'
@@ -302,35 +309,37 @@ chmod +x "${tmpdir}"/_phase_*.sh
 marker="${tmpdir}/c-ran"
 set +e
 out="$(
-  UI_DIR="${tmpdir}" UI_FAILFAST_MARKER="${marker}" bash -c '
-    set -euo pipefail
-    SCRIPT_DIR="'"${SCRIPT_DIR}"'"
-    UI_DIR="'"${tmpdir}"'"
-    PHASE=all
-    run_phase() {
-      local letter="$1"
-      local script="${UI_DIR}/_phase_${letter}.sh"
-      printf "ui: starting Phase %s\n" "${letter}"
-      "${script}"
-    }
-    run_phase a
-    run_phase b
-    run_phase c
-  ' 2>&1
+  UI_DIR="${tmpdir}" UI_FAILFAST_MARKER="${marker}" PHASE=all "${UI_SH}" 2>&1
 )"
 rc=$?
 set -e
 if [[ "${rc}" -eq 0 ]]; then
-  printf 'FAIL: fail-fast stub expected non-zero (got 0)\n'
+  printf 'FAIL: fail-fast ui.sh expected non-zero (got 0)\n'
   fail=$((fail + 1))
 elif [[ -f "${marker}" ]]; then
-  printf 'FAIL: fail-fast stub started Phase C after B failure\n'
+  printf 'FAIL: fail-fast ui.sh started Phase C after B failure\n'
   fail=$((fail + 1))
 elif ! grep -q 'stub B failing' <<<"${out}"; then
-  printf 'FAIL: fail-fast stub missing B failure output\n'
+  printf 'FAIL: fail-fast ui.sh missing B failure output\n'
+  fail=$((fail + 1))
+elif ! grep -q 'ui: starting Phase B' <<<"${out}"; then
+  printf 'FAIL: fail-fast did not run real ui.sh (missing Phase B banner)\n'
   fail=$((fail + 1))
 else
-  printf 'PASS: fail-fast B failure skips Phase C\n'
+  printf 'PASS: fail-fast B failure skips Phase C (real ui.sh)\n'
+  pass=$((pass + 1))
+fi
+
+# Phase env knobs follow letter vocab (not legacy UI_APP_*/UI_LINKERD_*/UI_SKUPPER_*)
+assert_file_contains \
+  "phase A uses UI_A_* knobs" \
+  "UI_A_SHOW_EAST" \
+  "${PHASE_A}"
+if grep -Eiq 'UI_APP_|UI_LINKERD_|UI_SKUPPER_' "${PHASE_A}" "${PHASE_B}" "${PHASE_C}" "${UI_DOWN}"; then
+  printf 'FAIL: legacy UI_APP_/UI_LINKERD_/UI_SKUPPER_ knobs still present\n'
+  fail=$((fail + 1))
+else
+  printf 'PASS: phase/ui-down knobs use UI_A_/UI_B_/UI_C_ vocab\n'
   pass=$((pass + 1))
 fi
 

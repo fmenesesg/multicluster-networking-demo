@@ -5,7 +5,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-UI_DIR="${SCRIPT_DIR}/ui"
+# Override UI_DIR for offline fail-fast harnesses (default: real phase scripts).
+UI_DIR="${UI_DIR:-${SCRIPT_DIR}/ui}"
 PHASE="${PHASE:-all}"
 
 run_phase() {

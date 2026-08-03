@@ -9,9 +9,9 @@ source "${SCRIPT_DIR}/../ui-common.sh"
 
 WEST_URL="http://emojivoto.demo.local:8080/"
 EAST_URL="http://emojivoto.demo.local:8081/"
-SHOW_EAST="${UI_APP_SHOW_EAST:-1}"
-CHECK_EAST="${UI_APP_CHECK_EAST:-0}"
-CURL_TIMEOUT="${UI_APP_CURL_TIMEOUT:-5}"
+SHOW_EAST="${UI_A_SHOW_EAST:-1}"
+CHECK_EAST="${UI_A_CHECK_EAST:-0}"
+CURL_TIMEOUT="${UI_A_CURL_TIMEOUT:-5}"
 # Offline contract tests may set UI_SKIP_PROBE=1 (private; not Make help).
 SKIP_PROBE="${UI_SKIP_PROBE:-0}"
 
@@ -40,7 +40,7 @@ if [[ "${SHOW_EAST}" == "1" ]]; then
   printf 'ACCESS_URL_EAST=%s\n' "${EAST_URL}"
 fi
 
-if [[ "${UI_APP_OPEN:-0}" == "1" ]] && command -v xdg-open >/dev/null 2>&1; then
+if [[ "${UI_A_OPEN:-0}" == "1" ]] && command -v xdg-open >/dev/null 2>&1; then
   xdg-open "${WEST_URL}" >/dev/null 2>&1 || true
 fi
 

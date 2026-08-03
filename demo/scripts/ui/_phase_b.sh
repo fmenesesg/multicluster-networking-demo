@@ -9,8 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../ui-common.sh"
 
 LINKERD_CLIENT_PIN="${LINKERD_CLIENT_PIN:-edge-26.6.3}"
-PREFERRED_PORT="${UI_LINKERD_PORT:-50750}"
-VIZ_WAIT="${UI_LINKERD_WAIT:-5m}"
+PREFERRED_PORT="${UI_B_PORT:-50750}"
+VIZ_WAIT="${UI_B_WAIT:-5m}"
 PID_NAME="ui-linkerd-dashboard"
 URL_FILE_NAME="ui-linkerd-access-url"
 

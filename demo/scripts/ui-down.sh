@@ -8,8 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/ui-common.sh"
 
-RELEASE_NAME="${UI_SKUPPER_RELEASE:-skupper-network-observer}"
-OBSERVER_NS="${UI_SKUPPER_NAMESPACE:-skupper}"
+RELEASE_NAME="${UI_C_RELEASE:-skupper-network-observer}"
+OBSERVER_NS="${UI_C_NAMESPACE:-skupper}"
 
 if [[ -n "${CLUSTER:-}" ]]; then
   demo_require_allowlisted "${CLUSTER}" "target" || exit 1
@@ -19,7 +19,7 @@ printf 'ui-down: Phase A — no process teardown (hosts/docs only; keep /etc/hos
 
 # --- Phase B: stop Viz dashboard PF + uninstall Viz ---
 demo_ui_stop_pf "Linkerd Viz dashboard" "ui-linkerd-dashboard" \
-  "${UI_LINKERD_PORT:-50750}" "ui-linkerd-access-url" || true
+  "${UI_B_PORT:-50750}" "ui-linkerd-access-url" || true
 rm -f "$(demo_ui_run_dir)/ui-linkerd-access-url"
 rm -f "$(demo_ui_run_dir)/ui-linkerd-dashboard.log"
 
@@ -47,7 +47,7 @@ fi
 
 # --- Phase C: stop observer PF + helm uninstall ---
 demo_ui_stop_pf "Skupper network-observer" "ui-skupper-observer" \
-  "${UI_SKUPPER_PORT:-8443}" "ui-skupper-access-url" || true
+  "${UI_C_PORT:-8443}" "ui-skupper-access-url" || true
 rm -f "$(demo_ui_run_dir)/ui-skupper-access-url"
 rm -f "$(demo_ui_run_dir)/ui-skupper-observer.log"
 # Auth file is runtime secret material — remove on teardown.
