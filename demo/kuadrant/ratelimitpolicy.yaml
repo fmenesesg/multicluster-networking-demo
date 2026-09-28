@@ -1,5 +1,6 @@
 # Tight RateLimitPolicy — primary N-S wow (visible 429 under make demo-ratelimit).
-# limit 3 / 10s so a short curl burst trips without interactive IdP.
+# Limit homepage requests only; assets and voting must not consume the demo quota.
+# Emojivoto renders a misleading "404" page for any failed vote, including HTTP 429.
 ---
 apiVersion: kuadrant.io/v1
 kind: RateLimitPolicy
@@ -15,6 +16,8 @@ spec:
     name: demo
   limits:
     "demo-wow":
+      when:
+        - predicate: "request.url_path == '/'"
       rates:
         - limit: 3
           window: 10s

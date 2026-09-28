@@ -162,6 +162,25 @@ live_dig_probe() {
   fi
 }
 
+live_browser_probe() {
+  local ctx="$1" base path code
+  if ! base="$(gateway_base_url "${ctx}")"; then
+    bad "browser flow Gateway unreachable"
+    return
+  fi
+  # Run after the homepage burst: a real browser needs assets/list plus a vote.
+  # One successful rocket vote is intentional; doughnut fails in upstream v11.
+  for path in /js /api/list '/api/vote?choice=%3Arocket%3A' /api/leaderboard; do
+    code="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 10 \
+      -H "Host: ${DEMO_HOST}" "${base}${path}" || true)"
+    if [[ "${code}" == "200" ]]; then
+      ok "browser ${path} returns 200 after rate-limit burst"
+    else
+      bad "browser ${path} returned ${code} (expected 200; APIs/assets must bypass homepage quota)"
+    fi
+  done
+}
+
 live_smoke() {
   local west_ctx
   west_ctx="$(demo_kind_context kind-west)"
@@ -169,6 +188,7 @@ live_smoke() {
 
   live_http_probe "${west_ctx}"
   run_or_fail "RateLimit burst (expect ≥1×429)" env CLUSTER=kind-west "${SCRIPT_DIR}/demo-ratelimit.sh"
+  live_browser_probe "${west_ctx}"
   run_or_fail "Linkerd / emojivoto mesh" "${SCRIPT_DIR}/check-east-west.sh"
   run_or_fail "Skupper VAN" "${SCRIPT_DIR}/check-skupper.sh"
   live_dig_probe "${west_ctx}"
