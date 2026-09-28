@@ -8,7 +8,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 
 MIN_INOTIFY_INSTANCES=512
 # cloud-provider-kind: Kind LoadBalancer for Skupper linkAccess + Gateway EXTERNAL-IP (NOT MetalLB).
-REQUIRED_CLIS=(podman kind kubectl helm skupper linkerd cloud-provider-kind kustomize)
+REQUIRED_CLIS=(podman kind kubectl helm skupper linkerd cloud-provider-kind kustomize curl openssl python3 dig setsid)
 
 fail() {
   printf 'error: %s\n' "$*" >&2
