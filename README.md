@@ -173,6 +173,21 @@ For optional UIs, add `127.0.0.1 emojivoto.demo.local` to the hosts file used by
 
 Troubleshooting starts with `podman info`, `make prereq-check`, `kind get clusters`, `kubectl --context kind-kind-west get pods -A`, and `demo/.run/cloud-provider-kind.log`. Never use a blanket container reset or delete the unrelated `kind-cluster`.
 
+After a host/WSL shutdown, Kind may list existing clusters whose node containers are stopped. If `make up` reports an unreachable API (`127.0.0.1:... connection refused`), check `podman ps -a`. For this repo's single-node clusters, resume the existing containers without deleting their data:
+
+```bash
+systemd-run --scope --user -p Delegate=yes \
+  podman start kind-west-control-plane kind-east-control-plane
+# Retry these checks while Kubernetes starts; both must return "ok":
+kubectl --context kind-kind-west --request-timeout=10s get --raw=/readyz
+kubectl --context kind-kind-east --request-timeout=10s get --raw=/readyz
+make up
+make smoke
+make ui  # optional; recreate dashboard forwards after the restart
+```
+
+Run this recovery only for existing, stopped demo containers. `make up` recreates missing demo sites normally. An API failure must be resolved before diagnosing missing LoadBalancer IPs.
+
 ## Topology
 
 ```

@@ -35,6 +35,13 @@ ensure_kind_cluster() {
   demo_require_allowlisted "${name}" "create" || return 1
   if demo_kind_exists "${name}"; then
     printf 'up: Kind cluster %s already exists — skipping create\n' "${name}"
+    if ! kubectl --context "$(demo_kind_context "${name}")" --request-timeout=10s \
+        get --raw=/readyz >/dev/null 2>&1; then
+      printf 'error: existing cluster %s has no ready Kubernetes API; existence does not mean its node containers are running\n' "${name}" >&2
+      printf 'hint: inspect its nodes with: kind get nodes --name %s; check their state with podman ps -a\n' "${name}" >&2
+      printf 'hint: start stopped demo nodes, wait for the API, then rerun make up (see README recovery steps)\n' >&2
+      return 1
+    fi
   else
     printf 'up: creating Kind cluster %s (provider=%s)\n' "${name}" "${KIND_EXPERIMENTAL_PROVIDER}"
     # Node image pinned in demo/kind/*.yaml (kindest/node:v1.35.5@sha256:… for Linkerd).
