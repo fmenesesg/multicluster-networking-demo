@@ -306,6 +306,8 @@ make down               # best-effort ui-down, then demo sites only; kind-cluste
 
 `make up` is idempotent on re-run (Kind skip-create, Linkerd upgrade-when-present). It **fails** if the Skupper three-site VAN does not link (token issue / east redeem / podman-edge Option C).
 
+Existing `Ready` Skupper links to kind-west are reused on reruns; tokens are issued/redeemed only for sites that still need a link. If a new redemption fails with `no route to host`, compare the west `skupper-grant-server` Service's EXTERNAL-IP with the current Podman LoadBalancer container IP: after a restart the advertised address can be stale. Existing router links may remain healthy even when the token endpoint is unreachable.
+
 ## Make targets
 
 | Target | Purpose |
