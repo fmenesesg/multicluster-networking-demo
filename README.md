@@ -8,10 +8,10 @@ Repo: [fmenesesg/multicluster-networking-demo](https://github.com/fmenesesg/mult
 
 ## Quick start
 
-New machine? Complete [First-time setup](#first-time-setup-fedora--wsl2) before running these commands. Run all Bash commands as the same normal Linux user, from the repository root.
+New machine? Complete [First-time setup](#first-time-setup-fedora--wsl2) (Podman/WSL), then `make install` for pinned CLIs. Run all Bash commands as the same normal Linux user, from the repository root.
 
 ```bash
-make install            # host CLIs/pins → ~/.local/bin (+ podman/inotify if needed); runs prereq-check
+make install            # host CLIs/pins → ~/.local/bin (+ podman/inotify/host tools if needed); runs prereq-check
 export PATH="$HOME/.local/bin:$PATH"   # so pins win over any system Helm/kubectl
 make prereq-check       # optional; make up already runs this
 make up                 # stack only (no UIs) — re-run is idempotent
@@ -115,45 +115,18 @@ pids_limit = 65536
 
 ### 3. Install pinned Linux CLIs
 
-The following commands target **Linux x86_64** (`uname -m` = `x86_64`). For ARM64, select the corresponding upstream assets. They install into `~/.local/bin`, leaving system versions available. Run the block with Bash; a failed download must stop installation.
+Preferred path (pins from `demo/VERSIONS.md`, including **cloud-provider-kind v0.11.1** for stable host ports on Podman; also ensures `python3` / `dig` / `setsid` when missing):
 
 ```bash
-(
-set -euo pipefail
-install_dir="$HOME/.local/bin"
-tmp_dir="$(mktemp -d)"
-trap 'rm -rf "$tmp_dir"' EXIT
-mkdir -p "$install_dir"
-curl -fL --retry 3 https://github.com/kubernetes-sigs/kind/releases/download/v0.32.0/kind-linux-amd64 -o "$tmp_dir/kind"
-curl -fL --retry 3 https://github.com/linkerd/linkerd2/releases/download/edge-26.6.3/linkerd2-cli-edge-26.6.3-linux-amd64 -o "$tmp_dir/linkerd"
-curl -fL --retry 3 https://github.com/skupperproject/skupper/releases/download/2.2.1/skupper-cli-2.2.1-linux-amd64.tgz -o "$tmp_dir/skupper.tgz"
-tar -xzf "$tmp_dir/skupper.tgz" -C "$tmp_dir" skupper
-curl -fL --retry 3 https://get.helm.sh/helm-v3.17.4-linux-amd64.tar.gz -o "$tmp_dir/helm.tgz"
-tar -xzf "$tmp_dir/helm.tgz" -C "$tmp_dir" linux-amd64/helm
-curl -fL --retry 3 https://dl.k8s.io/release/v1.36.1/bin/linux/amd64/kubectl -o "$tmp_dir/kubectl"
-curl -fL --retry 3 https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.6.0/kustomize_v5.6.0_linux_amd64.tar.gz -o "$tmp_dir/kustomize.tgz"
-tar -xzf "$tmp_dir/kustomize.tgz" -C "$tmp_dir" kustomize
-curl -fL --retry 3 https://github.com/kubernetes-sigs/cloud-provider-kind/releases/download/v0.11.1/cloud-provider-kind_0.11.1_linux_amd64.tar.gz -o "$tmp_dir/ccm.tgz"
-tar -xzf "$tmp_dir/ccm.tgz" -C "$tmp_dir" cloud-provider-kind
-install -m 755 "$tmp_dir/"{kind,linkerd,skupper,kubectl,kustomize,cloud-provider-kind} "$install_dir/"
-install -m 755 "$tmp_dir/linux-amd64/helm" "$install_dir/helm"
-)
+make install
+export PATH="$HOME/.local/bin:$PATH"
 hash -r
-kind version
-kubectl version --client
-helm version --short
-linkerd version --client
-skupper version
-kustomize version
-```
-
-The cloud-provider-kind release above makes this setup reproducible; the alternative build-from-source path is:
-
-```bash
-go install sigs.k8s.io/cloud-provider-kind@latest
-# ensure $(go env GOPATH)/bin or ~/.local/bin is on PATH
 make prereq-check
 ```
+
+`make install` downloads into `~/.local/bin`, may use sudo for podman/inotify/host packages, does **not** edit shell rc files, and ends with `prereq-check`. Override pins with env vars (`KIND_VERSION`, `HELM_VERSION`, `CLOUD_PROVIDER_KIND_VERSION`, …).
+
+Fallback only if you cannot run the script: build CCM from source (`go install sigs.k8s.io/cloud-provider-kind@latest`) or download the same release assets manually into `~/.local/bin` (see `demo/scripts/install-prereqs.sh` for URLs). Prefer `make install` so host ports stay on west `:8080` / east `:8081` (CCM **v0.12+** may publish ephemeral ports).
 
 ### 4. Bring up and validate the live demo
 
@@ -315,6 +288,7 @@ Existing `Ready` Skupper links to kind-west are reused on reruns; tokens are iss
 | Target | Purpose |
 |--------|---------|
 | `make up` / `make down` | Lifecycle (allowlist-scoped); `up` stays UI-free |
+| `make install` | Bootstrap pinned host CLIs into `~/.local/bin` (then prereq-check) |
 | `make prereq-check` | Single host prerequisite gate (also invoked by `up`) |
 | `make smoke` / `make demo-smoke` | End-to-end probes (offline validates if no Kind) |
 | `make failover` / `make demo-failover` | Kill-primary → east |

@@ -140,6 +140,29 @@ install_podman() {
   podman info >/dev/null 2>&1 || fail "podman installed but still not usable (podman info failed)"
 }
 
+# Host tools required by prereq-check after demo scripts (not downloaded as release binaries).
+ensure_host_tools() {
+  local missing=()
+  local pkg
+  command -v python3 >/dev/null 2>&1 || missing+=("python3")
+  command -v dig >/dev/null 2>&1 || missing+=("bind-utils")
+  command -v setsid >/dev/null 2>&1 || missing+=("util-linux")
+  if [[ "${#missing[@]}" -eq 0 ]]; then
+    info "host tools: python3 dig setsid present"
+    return 0
+  fi
+  if ! command -v dnf >/dev/null 2>&1; then
+    fail "missing host tools (${missing[*]}) and dnf not available — install python3, bind-utils, util-linux"
+  fi
+  info "host tools: installing via dnf: ${missing[*]} (sudo)"
+  for pkg in "${missing[@]}"; do
+    sudo_run dnf install -y "${pkg}"
+  done
+  command -v python3 >/dev/null 2>&1 || fail "python3 still missing after dnf install"
+  command -v dig >/dev/null 2>&1 || fail "dig still missing after dnf install (package bind-utils)"
+  command -v setsid >/dev/null 2>&1 || fail "setsid still missing after dnf install (package util-linux)"
+}
+
 ensure_inotify() {
   local path="${INOTIFY_MAX_USER_INSTANCES_PATH:-/proc/sys/fs/inotify/max_user_instances}"
   local current
@@ -270,6 +293,7 @@ main() {
   export PATH="${BIN_DIR}:${PATH}"
 
   install_podman
+  ensure_host_tools
   ensure_inotify
   install_kind
   install_kubectl

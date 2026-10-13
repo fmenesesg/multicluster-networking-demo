@@ -15,7 +15,7 @@ Pinned for the KCD Argentina 2026 multicluster connectivity demo. Prefer these e
 | cloud-provider-kind | **latest** / `make install` pin **v0.11.1** | Official Kind LoadBalancer path — **not MetalLB** |
 | kustomize | **v5.6.0+** | Required for Kuadrant CoreDNS (`kustomize build --enable-helm`) |
 
-Host CLI bootstrap: **`make install`** (`demo/scripts/install-prereqs.sh`) downloads pinned binaries into `~/.local/bin`, installs podman via dnf if missing, raises inotify, then runs `prereq-check`. Override pins with env vars (`KIND_VERSION`, `HELM_VERSION`, `CLOUD_PROVIDER_KIND_VERSION`, …).
+Host CLI bootstrap: **`make install`** (`demo/scripts/install-prereqs.sh`) downloads pinned binaries into `~/.local/bin`, installs podman via dnf if missing, ensures `python3`/`dig`/`setsid` when missing, raises inotify, then runs `prereq-check`. Override pins with env vars (`KIND_VERSION`, `HELM_VERSION`, `CLOUD_PROVIDER_KIND_VERSION`, …).
 
 ### cloud-provider-kind (LoadBalancer)
 
