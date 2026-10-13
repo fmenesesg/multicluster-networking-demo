@@ -8,7 +8,9 @@ source "${SCRIPT_DIR}/lib/common.sh"
 
 MIN_INOTIFY_INSTANCES=512
 # cloud-provider-kind: Kind LoadBalancer for Skupper linkAccess + Gateway EXTERNAL-IP (NOT MetalLB).
-REQUIRED_CLIS=(podman kind kubectl helm skupper linkerd cloud-provider-kind kustomize)
+# curl/python3/dig/setsid are used by smoke, Skupper SAN helpers, and detached UI/CCM jobs.
+# Do not require openssl: no demo script invokes it (SAN work uses python3).
+REQUIRED_CLIS=(podman kind kubectl helm skupper linkerd cloud-provider-kind kustomize curl python3 dig setsid)
 
 fail() {
   printf 'error: %s\n' "$*" >&2

@@ -7,6 +7,9 @@ DEMO_KIND_CLUSTERS=(kind-west kind-east)
 DEMO_PODMAN_SITES=(podman-edge)
 DEMO_ALLOWLIST=(kind-west kind-east podman-edge)
 
+# All entry points must discover the same Podman clusters as up.sh.
+export KIND_EXPERIMENTAL_PROVIDER="${KIND_EXPERIMENTAL_PROVIDER:-podman}"
+
 demo_repo_root() {
   local here
   # This file lives at demo/scripts/lib/common.sh → three levels up is repo root.

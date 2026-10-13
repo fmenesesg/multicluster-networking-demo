@@ -280,6 +280,16 @@ assert_file_contains \
   "listener still present" \
   "${UI_COMMON}"
 # Live offline: demo_ui_record_pf writes pid+port and disowns the job
+# Isolate teardown tests from real runtime state, clusters and host listeners.
+test_dir="$(mktemp -d -t ui-skupper-test.XXXXXX)"
+trap 'rm -rf "${test_dir}"' EXIT
+export DEMO_UI_RUN_DIR="${test_dir}/run"
+mkdir -p "${test_dir}/bin"
+for stub in kind ss; do
+  printf '#!/usr/bin/env bash\nexit 0\n' >"${test_dir}/bin/${stub}"
+  chmod +x "${test_dir}/bin/${stub}"
+done
+export PATH="${test_dir}/bin:${PATH}"
 # shellcheck disable=SC1091
 source "${UI_COMMON}"
 record_name="ui-test-record-pf"
@@ -314,7 +324,7 @@ fi
 run_dir="$(demo_ui_ensure_run_dir)"
 fake_pidfile="$(demo_ui_pidfile ui-skupper-observer)"
 fake_portfile="$(demo_ui_portfile ui-skupper-observer)"
-printf '1\n' >"${fake_pidfile}"
+printf '2147483647\n' >"${fake_pidfile}"
 printf '8443\n' >"${fake_portfile}"
 out="$(CLUSTER= "${UI_DOWN}" 2>&1 || true)"
 if [[ -f "${fake_pidfile}" || -f "${fake_portfile}" ]]; then

@@ -67,14 +67,23 @@ assert_fails_with \
   "refusing|allowlist" \
   env CLUSTER=evil-cluster "${UP}"
 
-# (4) low inotify blocks bring-up (injectable path — no host sysctl mutation)
+# (4) low inotify blocks bring-up (injectable path — no host sysctl mutation).
+# Stub REQUIRED_CLIs (incl. podman info) so a missing/unusable host tool cannot
+# mask the inotify assertion.
 low_inotify="$(mktemp -t inotify-low.XXXXXX)"
+stub_bin="$(mktemp -d -t prereq-stub.XXXXXX)"
 printf '128\n' > "${low_inotify}"
+for bin in podman kind kubectl helm skupper linkerd cloud-provider-kind kustomize curl python3 dig setsid; do
+  printf '#!/usr/bin/env bash\nexit 0\n' >"${stub_bin}/${bin}"
+  chmod +x "${stub_bin}/${bin}"
+done
 assert_fails_with \
   "prereq blocks low inotify max_user_instances" \
   "inotify|max_user_instances|512" \
-  env INOTIFY_MAX_USER_INSTANCES_PATH="${low_inotify}" "${SCRIPT_DIR}/prereq-check.sh"
+  env PATH="${stub_bin}:${PATH}" INOTIFY_MAX_USER_INSTANCES_PATH="${low_inotify}" \
+  "${SCRIPT_DIR}/prereq-check.sh"
 rm -f "${low_inotify}"
+rm -rf "${stub_bin}"
 
 printf '\nAllowlist suite: %s passed, %s failed\n' "${pass}" "${fail}"
 if [[ "${fail}" -ne 0 ]]; then

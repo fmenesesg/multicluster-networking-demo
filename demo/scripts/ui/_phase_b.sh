@@ -74,12 +74,12 @@ access_url="http://127.0.0.1:${port}/"
 stop_existing_dashboard
 
 printf 'ui phase B: starting dashboard PF on 127.0.0.1:%s (no CCM LB)\n' "${port}"
-linkerd --context "${ctx}" viz dashboard \
+nohup setsid linkerd --context "${ctx}" viz dashboard \
   --address 127.0.0.1 \
   --port "${port}" \
   --show url \
   --wait "${VIZ_WAIT}" \
-  >"$(demo_ui_run_dir)/ui-linkerd-dashboard.log" 2>&1 &
+  </dev/null >"$(demo_ui_run_dir)/ui-linkerd-dashboard.log" 2>&1 &
 dash_pid=$!
 demo_ui_record_pf "${PID_NAME}" "${dash_pid}" "${port}" || exit 1
 printf '%s\n' "${access_url}" >"$(demo_ui_access_url_file)"
