@@ -35,6 +35,13 @@ ensure_kind_cluster() {
   demo_require_allowlisted "${name}" "create" || return 1
   if demo_kind_exists "${name}"; then
     printf 'up: Kind cluster %s already exists — skipping create\n' "${name}"
+    if ! kubectl --context "$(demo_kind_context "${name}")" --request-timeout=10s \
+        get --raw=/readyz >/dev/null 2>&1; then
+      printf 'error: existing cluster %s has no ready Kubernetes API; existence does not mean its node containers are running\n' "${name}" >&2
+      printf 'hint: inspect its nodes with: kind get nodes --name %s; check their state with podman ps -a\n' "${name}" >&2
+      printf 'hint: start stopped demo nodes, wait for the API, then rerun make up (see README recovery steps)\n' >&2
+      return 1
+    fi
   else
     printf 'up: creating Kind cluster %s (provider=%s)\n' "${name}" "${KIND_EXPERIMENTAL_PROVIDER}"
     # Node image pinned in demo/kind/*.yaml (kindest/node:v1.35.5@sha256:… for Linkerd).
@@ -375,13 +382,33 @@ ensure_skupper_podman_site() {
   fi
 }
 
+skupper_has_ready_west_link() {
+  # Tokens issued by this demo use kind-west-<uuid> as the Link name.
+  skupper "$@" link status 2>/dev/null \
+    | awk '$1 ~ /^kind-west-/ && $2 == "Ready" { ready=1 } END { exit !ready }'
+}
+
 link_skupper_van() {
   local west_ctx east_ctx
+  local east_ready=0 podman_ready=0
   west_ctx="$(demo_kind_context kind-west)"
   east_ctx="$(demo_kind_context kind-east)"
   mkdir -p "$(dirname "${SKUPPER_TOKEN_FILE}")"
   if ! demo_kind_exists "kind-west"; then
     printf 'up: skip Skupper linking — kind-west not present\n'
+    return 0
+  fi
+  # Missing east is "ready" for skip math (nothing to redeem there).
+  if ! demo_kind_exists "kind-east"; then
+    east_ready=1
+  elif skupper_has_ready_west_link --context "${east_ctx}" -n skupper; then
+    east_ready=1
+  fi
+  if skupper_has_ready_west_link -p podman -n podman-edge; then
+    podman_ready=1
+  fi
+  if [[ "${east_ready}" -eq 1 && "${podman_ready}" -eq 1 ]]; then
+    printf 'up: existing Skupper links to kind-west are Ready — skipping token issue/redeem\n'
     return 0
   fi
   printf 'up: issuing Skupper token from kind-west (hub)\n'
@@ -394,19 +421,23 @@ link_skupper_van() {
     printf 'up: retry after: kubectl --context %s -n skupper get site,svc\n' "${west_ctx}"
     return 1
   fi
-  if demo_kind_exists "kind-east"; then
+  if [[ "${east_ready}" -eq 0 ]]; then
     printf 'up: redeeming token on kind-east\n'
     if ! skupper --context "${east_ctx}" -n skupper token redeem "${SKUPPER_TOKEN_FILE}" --timeout 2m; then
       printf 'up: east token redeem failed\n'
       return 1
     fi
   fi
-  printf 'up: redeeming token on podman-edge (Option C: CCM localhost + SANs)\n'
-  if "${SCRIPT_DIR}/lib/redeem-podman-skupper.sh"; then
-    printf 'up: podman-edge linked into VAN (127.0.0.1 CCM path)\n'
+  if [[ "${podman_ready}" -eq 1 ]]; then
+    printf 'up: podman-edge already linked to kind-west — skipping redeem\n'
   else
-    printf 'up: podman-edge link failed — re-run ./demo/scripts/lib/redeem-podman-skupper.sh; see demo/skupper/README.md\n'
-    return 1
+    printf 'up: redeeming token on podman-edge (Option C: CCM localhost + SANs)\n'
+    if "${SCRIPT_DIR}/lib/redeem-podman-skupper.sh"; then
+      printf 'up: podman-edge linked into VAN (127.0.0.1 CCM path)\n'
+    else
+      printf 'up: podman-edge link failed — re-run ./demo/scripts/lib/redeem-podman-skupper.sh; see demo/skupper/README.md\n'
+      return 1
+    fi
   fi
   # Confirm Kind sees 3 sites (west+east+podman) when possible.
   skupper --context "${west_ctx}" -n skupper site status 2>/dev/null || true

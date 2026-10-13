@@ -13,7 +13,7 @@ DEMO_UI_RESERVED_PORTS=(8080 8081 18080 18081 45671 55671)
 demo_ui_run_dir() {
   local root
   root="$(demo_repo_root)"
-  printf '%s\n' "${root}/demo/.run"
+  printf '%s\n' "${DEMO_UI_RUN_DIR:-${root}/demo/.run}"
 }
 
 demo_ui_ensure_run_dir() {

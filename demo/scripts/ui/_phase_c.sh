@@ -152,10 +152,10 @@ stop_existing_pf
 
 printf 'ui phase C: starting HTTPS PF 127.0.0.1:%s → svc/%s:443 (no CCM LB)\n' \
   "${port}" "${RELEASE_NAME}"
-kubectl --context "${ctx}" -n "${NAMESPACE}" port-forward \
+nohup setsid kubectl --context "${ctx}" -n "${NAMESPACE}" port-forward \
   "service/${RELEASE_NAME}" "${port}:443" \
   --address 127.0.0.1 \
-  >"$(demo_ui_run_dir)/ui-skupper-observer.log" 2>&1 &
+  </dev/null >"$(demo_ui_run_dir)/ui-skupper-observer.log" 2>&1 &
 pf_pid=$!
 demo_ui_record_pf "${PID_NAME}" "${pf_pid}" "${port}" || exit 1
 printf '%s\n' "${access_url}" >"$(demo_ui_access_url_file)"

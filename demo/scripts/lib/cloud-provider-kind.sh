@@ -104,8 +104,8 @@ demo_ccm_start_process() {
 
   printf 'up: starting cloud-provider-kind --enable-lb-port-mapping (log %s)\n' "${logfile#$(demo_repo_root)/}"
   # Podman Kind clusters are invisible to CCM unless the provider env is set.
-  nohup env KIND_EXPERIMENTAL_PROVIDER="${KIND_EXPERIMENTAL_PROVIDER:-podman}" \
-    "${bin}" --enable-lb-port-mapping >"${logfile}" 2>&1 &
+  nohup setsid env KIND_EXPERIMENTAL_PROVIDER="${KIND_EXPERIMENTAL_PROVIDER:-podman}" \
+    "${bin}" --enable-lb-port-mapping </dev/null >"${logfile}" 2>&1 &
   new_pid=$!
   sleep 1
   if ! demo_ccm_pid_alive "${new_pid}"; then
@@ -168,8 +168,8 @@ demo_wait_ccm_lb_ready() {
   fi
   printf 'up: [%s] waiting up to %ss for cloud-provider-kind LoadBalancer EXTERNAL-IP\n' "${ctx}" "${wait_max}"
   while (( waited < wait_max )); do
-    ip="$(kubectl --context "${ctx}" get svc -A -o jsonpath \
-      '{range .items[?(@.spec.type=="LoadBalancer")]}{.status.loadBalancer.ingress[0].ip}{"\n"}{end}' \
+    ip="$(kubectl --context "${ctx}" get svc -A \
+      -o jsonpath='{range .items[?(@.spec.type=="LoadBalancer")]}{.status.loadBalancer.ingress[0].ip}{"\n"}{end}' \
       2>/dev/null | awk 'NF{print; exit}')"
     if [[ -n "${ip}" ]]; then
       printf 'up: [%s] CCM LoadBalancer ready (EXTERNAL-IP %s)\n' "${ctx}" "${ip}"
