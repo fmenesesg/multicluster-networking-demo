@@ -8,7 +8,8 @@
 
 Prefer Make over ad-hoc YAML on stage. Live first; if a cue stalls **≤ ~2 minutes**, abandon → play the matching clip → advance.
 
-**Hilo conductor (guion ↔ grabación por slide):** [`talk-conductor.md`](./talk-conductor.md) · Cards: [`speaker-cards.md`](./speaker-cards.md) · Runbook: [`recording-runbook.md`](./recording-runbook.md) · helpers: `demo/scripts/record-talk-backup/`
+**Hilo conductor (guion ↔ grabación por slide):** [`talk-conductor.md`](./talk-conductor.md) · Cards: [`speaker-cards.md`](./speaker-cards.md) · Runbook: [`recording-runbook.md`](./recording-runbook.md) · helpers: `demo/scripts/record-talk-backup/`  
+**Extra architecture diagrams (aparte from primary slide 5):** [`../kcd-ba-arch-diagrams/`](../kcd-ba-arch-diagrams/) — visual-only ChatGPT prompts; no Make cue; skip on overrun at or before Option-C.
 
 ### Slide ↔ clip (resumen)
 
