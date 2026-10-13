@@ -189,7 +189,7 @@ Local LB is **cloud-provider-kind** with `--enable-lb-port-mapping` (not MetalLB
 
 ## Talk UIs (opt-in — not part of `make up`)
 
-**Talk deck** (scripts, Gemini prompts, speaker cards): [`openspec/changes/archive/2026-09-28-kcd-ba-talk-deck/`](openspec/changes/archive/2026-09-28-kcd-ba-talk-deck/). **Conductor guion↔clips** + stage commands + recording runbook: [`openspec/changes/kcd-ba-demo-backup/`](openspec/changes/kcd-ba-demo-backup/) (`talk-conductor.md`, `stage-commands.md`, `speaker-cards.md`, `recording-runbook.md`). Backup media only at `/home/fmeneses/Videos/kcd-ba-demo-backup/` (outside git; no video/PPTX binaries or proprietary RH PPTX in the repo).
+**Talk packaging** (scripts, Gemini/ChatGPT prompts, speaker cards, conductor, stage commands, recording runbook) is **local-only** — not in this git remote. On this machine it lives at `/home/fmeneses/demos/kcd-argentina2026-openspec-local/` (sibling of the repo; see that tree’s `README-LOCAL.txt`). SDD history and decisions are in **Engram**. Backup media only at `/home/fmeneses/Videos/kcd-ba-demo-backup/` (outside git; no video/PPTX binaries or proprietary RH PPTX in the repo).
 
 One public entry: **`make ui`**. It always starts **app (A) → Linkerd Viz (B) → Skupper observer (C)** — each start+validate + `ACCESS_URL` — and **fails fast** if a phase fails (later phases do not start). There is no public single-phase Make target. Critical-path success remains RateLimit, mesh, Skupper, and failover — UIs are optional.
 
@@ -312,12 +312,7 @@ Optional: `CLUSTER=kind-west` (etc.) scopes `up` / `down` / `demo-ratelimit` / `
 - Internals: `demo/scripts/lib/` (CCM, Skupper redeem/SAN, shared helpers)
 - Phase helpers (private): `demo/scripts/ui/_phase_*.sh`
 - Runtime state: `demo/.run/` (gitignored — CCM pid, UI PF pid/port, Skupper basic-auth)
-- SDD specs: `openspec/specs/`
-- Archived changes:
-  - `openspec/changes/archive/2026-07-31-multicluster-connectivity-demo/`
-  - `openspec/changes/archive/2026-07-31-demo-product-uis/`
-  - `openspec/changes/archive/2026-08-03-demo-script-consolidation/`
-  - `openspec/changes/archive/2026-09-28-kcd-ba-talk-deck/`
+- Talk / SDD packaging: Engram + local sibling `/home/fmeneses/demos/kcd-argentina2026-openspec-local/` (not in git)
 
 ## Offline / CI-friendly checks
 
