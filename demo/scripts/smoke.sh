@@ -76,6 +76,10 @@ offline_smoke() {
   assert_grep "RateLimitPolicy scopes homepage only" "request\\.url_path == '/'" \
     "${ROOT}/demo/kuadrant/ratelimitpolicy.yaml"
   assert_grep "prereq requires cloud-provider-kind" "cloud-provider-kind" "${ROOT}/demo/scripts/prereq-check.sh"
+  require_file "${ROOT}/demo/scripts/install-prereqs.sh"
+  assert_grep "Makefile exposes make install" "^install:" "${ROOT}/Makefile"
+  assert_grep "install pins cloud-provider-kind v0.11.1" "CLOUD_PROVIDER_KIND_VERSION=.*v0\\.11\\.1" \
+    "${ROOT}/demo/scripts/install-prereqs.sh"
   assert_grep "up starts CCM" "demo_ensure_cloud_provider_kind" "${ROOT}/demo/scripts/up.sh"
   assert_grep "up resyncs CCM after Kind create" "demo_ccm_resync_if_ours" "${ROOT}/demo/scripts/up.sh"
   assert_grep "down stops owned CCM" "demo_stop_cloud_provider_kind_if_ours" "${ROOT}/demo/scripts/down.sh"

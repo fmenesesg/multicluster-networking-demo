@@ -6,7 +6,7 @@
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 SCRIPTS := $(ROOT)/demo/scripts
 
-.PHONY: help up down test-allowlist test-ui-foundation test-ui-linkerd test-ui-skupper prereq-check \
+.PHONY: help install up down test-allowlist test-ui-foundation test-ui-linkerd test-ui-skupper prereq-check \
 	smoke failover \
 	demo-ratelimit demo-mesh demo-skupper demo-smoke demo-failover \
 	ui ui-down
@@ -14,6 +14,7 @@ SCRIPTS := $(ROOT)/demo/scripts
 help:
 	@printf '%s\n' \
 	  'Targets:' \
+	  '  make install        Install host CLIs/pins (VERSIONS.md) into ~/.local/bin; then prereq-check' \
 	  '  make up             Bring up demo sites + EG/Kuadrant + Linkerd + Skupper + apps' \
 	  '  make down           Tear down demo sites only (never kind-cluster); stop demo-owned CCM' \
 	  '  make prereq-check   Fail-fast host prerequisite gate (incl. cloud-provider-kind)' \
@@ -31,6 +32,9 @@ help:
 	  '  make ui             Opt-in talk UIs: app + Linkerd Viz + Skupper observer (A→B→C; fail-fast)' \
 	  '  make ui-down        Tear down Viz + observer PFs (app is hosts/docs only)' \
 	  'Optional: CLUSTER=<allowlisted-name> scopes up/down/demo-ratelimit/ui*'
+
+install:
+	@$(SCRIPTS)/install-prereqs.sh
 
 up:
 	@$(SCRIPTS)/up.sh

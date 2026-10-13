@@ -12,8 +12,10 @@ Pinned for the KCD Argentina 2026 multicluster connectivity demo. Prefer these e
 | podman | **5.x** (host) | Edge site + Kind provider |
 | skupper | **2.2.1** | `skupper version` must match |
 | linkerd | **edge-26.6.3** | `linkerd version --client` must match |
-| cloud-provider-kind | **latest** (`sigs.k8s.io/cloud-provider-kind`) | Official Kind LoadBalancer path — **not MetalLB** |
+| cloud-provider-kind | **latest** / `make install` pin **v0.11.1** | Official Kind LoadBalancer path — **not MetalLB** |
 | kustomize | **v5.6.0+** | Required for Kuadrant CoreDNS (`kustomize build --enable-helm`) |
+
+Host CLI bootstrap: **`make install`** (`demo/scripts/install-prereqs.sh`) downloads pinned binaries into `~/.local/bin`, installs podman via dnf if missing, ensures `python3`/`dig`/`setsid` when missing, raises inotify, then runs `prereq-check`. Override pins with env vars (`KIND_VERSION`, `HELM_VERSION`, `CLOUD_PROVIDER_KIND_VERSION`, …).
 
 ### cloud-provider-kind (LoadBalancer)
 
@@ -22,10 +24,13 @@ Required for Skupper `linkAccess` and Gateway `EXTERNAL-IP` on Kind + Podman.
 Install (pick one):
 
 ```bash
+make install   # preferred — pins v0.11.1 for stable host port mapping on Podman
+# or:
 go install sigs.k8s.io/cloud-provider-kind@latest
-# ensure $(go env GOPATH)/bin is on PATH, or:
-# curl -sL <release asset> -o ~/.local/bin/cloud-provider-kind && chmod +x ~/.local/bin/cloud-provider-kind
+# ensure $(go env GOPATH)/bin is on PATH, or place a release binary in ~/.local/bin
 ```
+
+Note: **v0.12+** may publish **ephemeral** host ports for LoadBalancers; the demo README assumes west `:8080`, east `:8081`, Skupper `:45671`/`:55671`. `make install` therefore defaults to **v0.11.1** (`CLOUD_PROVIDER_KIND_VERSION` to override).
 
 Runtime (managed by `make up` / `make down`):
 
