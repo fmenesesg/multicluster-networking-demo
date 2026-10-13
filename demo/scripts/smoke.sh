@@ -73,6 +73,8 @@ offline_smoke() {
   assert_grep "VERSIONS pins cloud-provider-kind" "cloud-provider-kind" "${ROOT}/demo/VERSIONS.md"
   assert_grep "VERSIONS pins Kind 1.35.5" "v1\\.35\\.5" "${ROOT}/demo/VERSIONS.md"
   assert_grep "VERSIONS pins Linkerd edge-26.6.3" "edge-26\\.6\\.3" "${ROOT}/demo/VERSIONS.md"
+  assert_grep "RateLimitPolicy scopes homepage only" "request\\.url_path == '/'" \
+    "${ROOT}/demo/kuadrant/ratelimitpolicy.yaml"
   assert_grep "prereq requires cloud-provider-kind" "cloud-provider-kind" "${ROOT}/demo/scripts/prereq-check.sh"
   assert_grep "up starts CCM" "demo_ensure_cloud_provider_kind" "${ROOT}/demo/scripts/up.sh"
   assert_grep "up resyncs CCM after Kind create" "demo_ccm_resync_if_ours" "${ROOT}/demo/scripts/up.sh"

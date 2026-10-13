@@ -36,7 +36,7 @@ That is the whole public path. Everything else below is detail for the talk and 
 | `skupper` **2.2.1** | Matching controller YAML |
 | `linkerd` **edge-26.6.3** | Max K8s 1.35 — Kind node pin **1.35.5** |
 | `cloud-provider-kind` on `PATH` | Official Kind LoadBalancer (**not MetalLB**) |
-| `kustomize`, `make`, `git`, `curl`, `openssl`, `dig` | CoreDNS rendering, scripts, certificates and DNS probes |
+| `kustomize`, `make`, `git`, `curl`, `python3`, `dig`, `setsid` | CoreDNS rendering, scripts, SAN helpers, DNS probes, detached UI/CCM |
 
 ## First-time setup (Fedora / WSL2)
 

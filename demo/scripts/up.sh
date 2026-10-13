@@ -398,7 +398,10 @@ link_skupper_van() {
     printf 'up: skip Skupper linking — kind-west not present\n'
     return 0
   fi
-  if ! demo_kind_exists "kind-east" || skupper_has_ready_west_link --context "${east_ctx}" -n skupper; then
+  # Missing east is "ready" for skip math (nothing to redeem there).
+  if ! demo_kind_exists "kind-east"; then
+    east_ready=1
+  elif skupper_has_ready_west_link --context "${east_ctx}" -n skupper; then
     east_ready=1
   fi
   if skupper_has_ready_west_link -p podman -n podman-edge; then
@@ -427,14 +430,14 @@ link_skupper_van() {
   fi
   if [[ "${podman_ready}" -eq 1 ]]; then
     printf 'up: podman-edge already linked to kind-west — skipping redeem\n'
-    return 0
-  fi
-  printf 'up: redeeming token on podman-edge (Option C: CCM localhost + SANs)\n'
-  if "${SCRIPT_DIR}/lib/redeem-podman-skupper.sh"; then
-    printf 'up: podman-edge linked into VAN (127.0.0.1 CCM path)\n'
   else
-    printf 'up: podman-edge link failed — re-run ./demo/scripts/lib/redeem-podman-skupper.sh; see demo/skupper/README.md\n'
-    return 1
+    printf 'up: redeeming token on podman-edge (Option C: CCM localhost + SANs)\n'
+    if "${SCRIPT_DIR}/lib/redeem-podman-skupper.sh"; then
+      printf 'up: podman-edge linked into VAN (127.0.0.1 CCM path)\n'
+    else
+      printf 'up: podman-edge link failed — re-run ./demo/scripts/lib/redeem-podman-skupper.sh; see demo/skupper/README.md\n'
+      return 1
+    fi
   fi
   # Confirm Kind sees 3 sites (west+east+podman) when possible.
   skupper --context "${west_ctx}" -n skupper site status 2>/dev/null || true
