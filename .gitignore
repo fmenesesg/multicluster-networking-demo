@@ -1,6 +1,10 @@
 # Gentle AI / local agent state
 .atl/
 
+# OpenSpec / talk packaging — local-only (sibling copy at
+# ../kcd-argentina2026-openspec-local/). Never re-commit into this repo.
+openspec/
+
 # Codegraph local index
 .codegraph/
 

@@ -4,7 +4,7 @@ Thin helpers for **silent** talk backup clips. Media MUST land only under:
 
 `/home/fmeneses/Videos/kcd-ba-demo-backup/`
 
-Docs: `openspec/changes/kcd-ba-demo-backup/stage-commands.md` and `recording-runbook.md`.
+Docs (local-only, not in git): `/home/fmeneses/demos/kcd-argentina2026-openspec-local/changes/kcd-ba-demo-backup/stage-commands.md` and `recording-runbook.md`.
 
 ## CLI
 
