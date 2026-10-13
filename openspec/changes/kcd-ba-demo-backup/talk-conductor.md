@@ -40,7 +40,8 @@ Replay cast: `asciinema play ~/Videos/kcd-ba-demo-backup/kcd-ba-<id>.cast`
 | 2 | A+B | Quiénes | A = N-S + failover · B = topo + Skupper + mesh |
 | 3 | A | Problema | Sitios rotos / RateLimit / caída del primario |
 | 4 | B | Agenda | Interconectar → E-W → N-S → failover · **nunca** `kind-cluster` |
-| 5 | B | Diagrama topo | west hub · east spoke · podman-edge |
+| 5 | B | Diagrama topo | west hub · east spoke · podman-edge (community slide; logo-light) |
+| 5× | B (opc.) | Extras aparte | Appendix / speaker-owned: real-world AKS+EKS+edge + nutshell — [`../kcd-ba-arch-diagrams/`](../kcd-ba-arch-diagrams/); visual-only, **no Make cue**; skip on overrun before Option-C |
 | 6 | B | Historia | “De tres islas a un fabric — ahora en vivo.” |
 
 **Puente B→live:** “Primero el cableado entre Kind y Podman.”
